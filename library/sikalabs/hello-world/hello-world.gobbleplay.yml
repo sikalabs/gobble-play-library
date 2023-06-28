@@ -3,4 +3,4 @@
   tasks:
     - name: Hello World Task
       print:
-        template: Hello world from Gogbble play from library
+        template: Hello world from Gogbble play from library {{.Vars.hello_world_extra}}
