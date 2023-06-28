@@ -1,0 +1,6 @@
+- name:  Hello World Play
+  hosts: [all]
+  tasks:
+    - name: Hello World Task
+      print:
+        template: Hello world from Gogbble play from library
