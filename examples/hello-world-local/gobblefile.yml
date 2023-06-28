@@ -1,0 +1,7 @@
+meta:
+  schema_version: 3
+hosts:
+  all:
+    - ssh_target: 127.0.0.1
+include_plays_before:
+  - source: http://127.0.0.1:8000/library/sikalabs/hello-world/hello-world.gobbleplay.yml
