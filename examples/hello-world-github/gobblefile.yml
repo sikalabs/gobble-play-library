@@ -1,0 +1,10 @@
+meta:
+  schema_version: 3
+hosts:
+  all:
+    - ssh_target: 127.0.0.1
+global:
+  vars:
+    hello_world_extra: from Github ;)
+include_plays_before:
+  - source: https://raw.githubusercontent.com/sikalabs/gobble-play-library/master/library/sikalabs/hello-world/hello-world.gobbleplay.yml
