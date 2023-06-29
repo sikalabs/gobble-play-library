@@ -1,0 +1,11 @@
+meta:
+  schema_version: 3
+hosts:
+  rke2_single_node:
+    - ssh_target: root@rke2-single-node-debian.sikademo.com
+      vars:
+        rke2_single_node_ssh_target: root@rke2-single-node-debian.sikademo.com
+        rke2_single_node_cluster_name: rke2-single-node-debian
+        rke2_single_node_host: rke2-single-node-debian.sikademo.com
+include_plays_before:
+  - source: https://raw.githubusercontent.com/sikalabs/gobble-play-library/master/library/sikalabs/rke2-single-node-debian/rke2-single-node-debian.gobbleplay.yml
