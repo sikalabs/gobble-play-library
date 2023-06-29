@@ -1,0 +1,97 @@
+- name: Setup Cluster
+  hosts: [rke2_single_node]
+  tags: [cluster]
+  tasks:
+    - name: Create /etc/rancher/rke2 dir
+      command:
+        cmd: mkdir -p /etc/rancher/rke2
+
+    - name: Create /etc/rancher/rke2/config.yaml
+      template:
+        path: /etc/rancher/rke2/config.yaml
+        template: |
+          tls-san:
+            - {{.Vars.rke2_single_node_host}}
+          disable:
+            - rke2-ingress-nginx
+
+    - name: Install requirements
+      command:
+        cmd: apt update && apt install -y curl git open-iscsi nfs-common
+
+    - name: Install slu
+      command:
+        cmd: curl -fsSL https://raw.githubusercontent.com/sikalabs/slu/master/install.sh | sh
+
+    - name: Install RKE2
+      command:
+        cmd: curl -sfL https://get.rke2.io | INSTALL_RKE2_METHOD='tar' INSTALL_RKE2_VERSION="v1.26.3+rke2r1" sh -
+
+    - name: Enable RKE2
+      command:
+        cmd: systemctl enable rke2-server.service
+
+    - name: Start/Restart RKE2
+      command:
+        cmd: systemctl restart rke2-server.service
+
+    - name: Install kubectl (using slu)
+      command:
+        cmd: slu install-bin kubectl
+
+    - name: Install helm (using slu)
+      command:
+        cmd: slu install-bin helm
+
+    - name: Create ~/.kube dir
+      command:
+        cmd: mkdir -p /root/.kube
+
+    - name: Create ~/.kube/config
+      command:
+        cmd: rm -rf /root/.kube/config && ln -s /etc/rancher/rke2/rke2.yaml /root/.kube/config
+
+    - name: Try it!
+      print:
+        template: |
+          ssh {{.Vars.rke2_single_node_ssh_target}} kubectl get nodes
+
+- name: Get Kubeconfig
+  hosts: [rke2_single_node]
+  tags: [get-kubeconfig]
+  tasks:
+    - name: Copy ~/.kube/config
+      cp:
+        remote_src: /root/.kube/config
+        local_dst: ./kubeconfig.yml
+    - name: Replace 127.0.0.1 with public endpoint
+      replace_string_in_local_file:
+        path: ./kubeconfig.yml
+        find: 127.0.0.1
+        replace: '{{ .Vars.rke2_single_node_host }}'
+    - name: Replace default with cluster name
+      replace_string_in_local_file:
+        path: ./kubeconfig.yml
+        find: default
+        replace: '{{ .Vars.rke2_single_node_cluster_name }}'
+
+- name: Setup Workload
+  hosts: [rke2_single_node]
+  tags: [workload]
+  tasks:
+    - name: Install Cluster Essentials (ingress-nginx, cert-manager, cluster issuer)
+      command:
+        cmd: slu scripts kubernetes install-all --base-domain {{.Vars.rke2_single_node_host}} --no-argocd
+
+    - name: Install Hello World App
+      command:
+        cmd: slu scripts kubernetes install-hello-world --host {{.Vars.rke2_single_node_host}} --replicas 3
+
+    - name: Wait for valit TLS certificate
+      command:
+        cmd: slu wait-for tls -a {{.Vars.rke2_single_node_host}}:443
+
+    - name: Try it!
+      print:
+        template: |
+          See: https://{{.Vars.rke2_single_node_host}}
