@@ -85,7 +85,7 @@
 
     - name: Install Hello World App
       command:
-        cmd: slu scripts kubernetes install-hello-world --host {{.Vars.rke2_single_node_host}} --replicas 3 --text "RKE2 Single Node"
+        cmd: slu scripts kubernetes install-hello-world --host {{.Vars.rke2_single_node_host}} --replicas 3 --text "{{ .Vars.rke2_single_node_cluster_name }}"
 
     - name: Wait for valit TLS certificate
       command:
