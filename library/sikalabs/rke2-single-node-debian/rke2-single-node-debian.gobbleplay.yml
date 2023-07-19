@@ -17,7 +17,7 @@
 
     - name: Install requirements
       command:
-        cmd: apt update && apt install -y curl git open-iscsi nfs-common
+        cmd: apt update && apt install -y curl git open-iscsi nfs-common iptables
 
     - name: Install slu
       command:
